@@ -163,40 +163,6 @@ img{max-width:100%;display:block}
 .clock{font-size:28px;font-weight:bold;letter-spacing:2px;
 
 }
-/* Under Construction Banner */
 
-.construction-banner{
-
-    width:100%;
-
-    background:linear-gradient(90deg,#ffcc00,#ff9900);
-
-    color:#111;
-
-    text-align:center;
-
-    font-size:18px;
-
-    font-weight:900;
-
-    letter-spacing:1px;
-
-    padding:12px;
-
-    border-bottom:3px solid #222;
-
-    box-shadow:0 3px 12px rgba(0,0,0,.35);
-
-    position:relative;
-
-    z-index:2000;
-
-}
-
-.construction-banner a{
-
-    color:#111;
-
-    font-weight:bold;
 
 }
