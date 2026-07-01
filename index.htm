@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Parma575 GMRS Radio Group - Connecting friends, families, and emergency communicators in Northern Ohio through reliable local communications.">
+<meta name="og:title" content="Parma575 GMRS Radio Group - BIGFOOT (WRZV602)">
+<meta name="og:description" content="Join the Parma575 GMRS Radio Group. Connect with operators across Cuyahoga county and surrounding areas.">
 <title>Parma575 -BIGFOOT (WRZV602) | GMRS Radio Group</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -61,10 +64,16 @@ header{
     border-radius:40px;
     text-decoration:none;
     transition:.3s;
+    font-weight:bold;
 }
 
 .button:hover{
     background:#0458bb;
+}
+
+.button:focus{
+    outline:3px solid #fff;
+    outline-offset:2px;
 }
 
 nav{
@@ -80,6 +89,7 @@ nav ul{
     display:flex;
     justify-content:center;
     list-style:none;
+    flex-wrap:wrap;
 }
 
 nav li{
@@ -90,10 +100,25 @@ nav a{
     color:white;
     text-decoration:none;
     font-weight:bold;
+    transition:color .3s;
+}
+
+nav a:hover{
+    color:#0b78ff;
+}
+
+nav a:focus{
+    outline:2px solid #0b78ff;
+}
+
+main{
+    margin-top:60px;
 }
 
 section{
     padding:80px 10%;
+    max-width:1200px;
+    margin:0 auto;
 }
 
 section:nth-child(even){
@@ -117,21 +142,39 @@ h2{
     padding:30px;
     border-radius:10px;
     box-shadow:0 0 20px rgba(0,0,0,.4);
+    transition:transform .3s, box-shadow .3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 5px 30px rgba(11,120,255,.3);
 }
 
 .card h3{
     color:#4db8ff;
     margin-bottom:15px;
+    font-size:22px;
+}
+
+.card p{
+    line-height:1.8;
 }
 
 footer{
     background:#050505;
     text-align:center;
     padding:40px;
+    border-top:1px solid #222;
+}
+
+footer h3{
+    margin-bottom:15px;
+    font-size:28px;
 }
 
 footer p{
     color:#999;
+    margin:10px 0;
 }
 
 .contact{
@@ -139,15 +182,80 @@ footer p{
     font-size:18px;
 }
 
+.contact p{
+    margin:15px 0;
+}
+
+.contact a{
+    color:#0b78ff;
+    text-decoration:none;
+    font-weight:bold;
+    transition:color .3s;
+}
+
+.contact a:hover{
+    text-decoration:underline;
+}
+
 @media(max-width:768px){
 
-.hero h1{
-font-size:48px;
+    body{
+        margin-top:60px;
+    }
+
+    header{
+        margin-top:0;
+    }
+
+    .hero h1{
+        font-size:48px;
+    }
+
+    .hero h2{
+        font-size:22px;
+    }
+
+    .hero p{
+        font-size:16px;
+    }
+
+    section{
+        padding:60px 5%;
+    }
+
+    h2{
+        font-size:32px;
+    }
+
+    nav li{
+        padding:15px 10px;
+    }
+
+    nav a{
+        font-size:14px;
+    }
+
 }
 
-.hero h2{
-font-size:22px;
-}
+@media(max-width:480px){
+
+    .hero h1{
+        font-size:36px;
+        letter-spacing:2px;
+    }
+
+    .hero h2{
+        font-size:18px;
+    }
+
+    .button{
+        padding:12px 25px;
+        font-size:14px;
+    }
+
+    section{
+        padding:40px 15px;
+    }
 
 }
 
@@ -161,16 +269,16 @@ font-size:22px;
 <ul>
 <li><a href="#about">About</a></li>
 <li><a href="#repeater">Repeater</a></li>
+<li><a href="#nets">Weekly Info</a></li>
 <li><a href="#events">Events</a></li>
 <li><a href="#join">Join</a></li>
 </ul>
 </nav>
 
 <header>
-
 <div class="hero">
 
-<h1>PARMA575 (WRZV602)- BIGFOOT!</h1>
+<h1>PARMA575 (WRZV602) - BIGFOOT!</h1>
 
 <h2>GMRS Radio Group</h2>
 
@@ -183,16 +291,13 @@ General Mobile Radio Service.
    class="button"
    target="_blank"
    rel="noopener noreferrer">
-    Help Support the Parma 575 GMRS Repeater.<br>
-    Visit the Parma 575 GMRS Repeater GoFundMe Page
-
-</a>
-    
+    Help Support the Parma 575 GMRS Repeater
 </a>
 
 </div>
-
 </header>
+
+<main>
 
 <section id="about">
 
@@ -201,37 +306,29 @@ General Mobile Radio Service.
 <div class="cards">
 
 <div class="card">
-
 <h3>Our Mission</h3>
-
 <p>
 Parma575 exists to promote responsible GMRS operation,
 community service, emergency preparedness, and friendly
 conversation across Cuyahoga county and surrounding counties.
 </p>
-
 </div>
 
 <div class="card">
-
 <h3>Who We Are</h3>
-
 <p>
 Our members include hobbyists, off-road enthusiasts,
 storm spotters, families, and new radio operators interested
 in reliable local communications.
 </p>
-
 </div>
 
 <div class="card">
-
 <h3>Why Join?</h3>
-
 <p>
 Meet fellow operators and learn about radio equipment.
+Get involved in a vibrant community of licensed GMRS users.
 </p>
-
 </div>
 
 </div>
@@ -245,40 +342,27 @@ Meet fellow operators and learn about radio equipment.
 <div class="cards">
 
 <div class="card">
-
 <h3>Frequency</h3>
-
 <p>
-
-Downlink  462.575 MHz / Uplink 467.575 MHz 
-
+<strong>Downlink:</strong> 462.575 MHz<br>
+<strong>Uplink:</strong> 467.575 MHz
 </p>
-
 </div>
 
 <div class="card">
-
 <h3>Access</h3>
-
 <p>
-
-CTCSS / DCS:<br>
-( 79.7 )
-
+<strong>CTCSS / DCS:</strong><br>
+79.7 Hz
 </p>
-
 </div>
 
 <div class="card">
-
 <h3>Coverage</h3>
-
 <p>
-
-Serving Cuyahoga county and surrounding counties.
-
+Serving Cuyahoga county and surrounding counties
+with reliable local communications.
 </p>
-
 </div>
 
 </div>
@@ -289,18 +373,15 @@ Serving Cuyahoga county and surrounding counties.
 
 <h2>Weekly Radio Info</h2>
 
+<div class="cards">
 
 <div class="card">
-
 <h3>Open Discussion</h3>
-
 <p>
-
 Everyone is welcome to check in,
-ask questions, and enjoy casual conversation.
-
+ask questions, and enjoy casual conversation
+on the Parma575 repeater.
 </p>
-
 </div>
 
 </div>
@@ -314,43 +395,33 @@ ask questions, and enjoy casual conversation.
 <div class="cards">
 
 <div class="card">
-
 <h3>Summer Picnic</h3>
-
 <p>
-Sunday JULY 26th 2026  11:00am
-    James Day Park Big Creek Pavilion.
-     <p>
-    Meeting Location:
-    <a href="https://maps.app.goo.gl/WJRL9RvJQPWcGa736"
-       target="_blank"
-       rel="noopener noreferrer">
-        11828 West Pleasant Valley Road, Parma, OH 44134
-    </a>
+<strong>Date:</strong> Sunday, July 26th, 2026<br>
+<strong>Time:</strong> 11:00 AM<br>
+<strong>Location:</strong> James Day Park Big Creek Pavilion<br>
+<strong>Lunch:</strong> Noon
 </p>
-    
-    First Annual Parma575 club and family picnic with food,
-games, and more! Lunch at NOON.
-    
-
-    
+<p>
+<a href="https://maps.app.goo.gl/WJRL9RvJQPWcGa736"
+   target="_blank"
+   rel="noopener noreferrer">
+   11828 West Pleasant Valley Road, Parma, OH 44134
+</a>
 </p>
-
-</div>
-
-
-
+<p>
+Join us for the First Annual Parma575 club and family picnic
+with food, games, and community!
+</p>
 </div>
 
 <div class="card">
-
 <h3>Community Service</h3>
-
 <p>
 Support local events and provide
-communications when needed.
+emergency communications when needed.
+Be part of our community-focused initiatives.
 </p>
-
 </div>
 
 </div>
@@ -368,35 +439,28 @@ Whether you're a new GMRS user or an experienced operator,
 you're welcome to participate.
 </p>
 
-<br>
-
 <p>
 📻 Licensed GMRS users welcome.
 </p>
 
-<br>
-
 <p>
-
-Email:
-<strong>n8pps@yahoo.com</strong>
-
+<strong>Email:</strong><br>
+<a href="mailto:n8pps@yahoo.com">n8pps@yahoo.com</a>
 </p>
 
-<br>
-
 <p>
-
-Discord:
-Parma575 GMRS 
-     <a href="https://discord.gg/WzVGNfTe8">Visit Discord</a>
-
-
+<strong>Discord:</strong><br>
+Parma575 GMRS<br>
+<a href="https://discord.gg/WzVGNfTe8" target="_blank" rel="noopener noreferrer">
+   Join our Discord Server
+</a>
 </p>
 
 </div>
 
 </section>
+
+</main>
 
 <footer>
 
@@ -406,18 +470,15 @@ Parma575 GMRS
 GMRS Radio Group • Northeast Ohio
 </p>
 
-<br>
-
 <p>
 © 2026 Parma575. All Rights Reserved.
 </p>
-    
+
 <div style="text-align:center; margin:20px 0;">
-    <h3>Visitors</h3>
+    <h3 style="font-size:18px; margin-bottom:10px;">Page Visits</h3>
     <img src="https://visitor-badge.laobi.icu/badge?page_id=parma575.home"
-         alt="Visitor Counter">
+         alt="Visitor Counter Badge">
 </div>
-    
 
 </footer>
 
