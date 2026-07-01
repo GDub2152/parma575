@@ -83,8 +83,23 @@ img{max-width:100%;display:block}
 .weather-row{display:flex;align-items:center;gap:20px}
 .weather-icon{font-size:52px}
 .temp{font-size:42px;font-weight:900}
-.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
-.online{color:#41e66d;font-weight:900}
+.mini-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.mini-grid div {
+    background: rgba(255,255,255,.08);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.mini-grid b {
+    font-size: 1.1rem;
+}.online{color:#41e66d;font-weight:900}
 .section{padding:68px 22px}
 .container{max-width:1220px;margin:auto}
 .section-title{text-align:center;margin:0 0 34px;font-size:42px}
