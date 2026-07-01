@@ -208,3 +208,26 @@ img{max-width:100%;display:block}
   .clock{font-size:20px}
   .section{padding:40px 16px}
 }
+
+
+/* Picnic RSVP Survey */
+.survey-card{align-self:start}
+.survey-form{display:grid;gap:12px;margin-top:16px}
+.survey-form label{display:grid;gap:6px;font-weight:800;color:#d9efff}
+.survey-form input,.survey-form select,.survey-form textarea{
+  width:100%;box-sizing:border-box;padding:11px 12px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;
+}
+.survey-form option{color:#111}
+.survey-status{min-height:22px;margin:2px 0 0;color:#9edbff;font-weight:800}
+.survey-status.error{color:#ffb6b6}
+.survey-totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}
+.survey-totals div{background:rgba(255,255,255,.08);border-radius:10px;padding:12px;text-align:center}
+.survey-totals strong{display:block;font-size:28px;color:#63c5ff}
+.survey-totals span{font-size:12px;color:#c5d6e4;text-transform:uppercase;font-weight:800}
+.responses-title{margin-top:18px}
+.survey-table-wrap{overflow-x:auto}
+.survey-table{width:100%;border-collapse:collapse;min-width:620px}
+.survey-table th,.survey-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;vertical-align:top}
+.survey-table th{color:#9edbff}
+@media(max-width:720px){.survey-totals{grid-template-columns:repeat(2,1fr)}}
