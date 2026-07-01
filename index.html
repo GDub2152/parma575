@@ -50,65 +50,81 @@
 
 </div>
 <div class="widget">
-  <h3>Current Weather</h3>
+    <h3>Current Weather</h3>
 
-  <div class="weather-row">
-    <div class="weather-icon" id="weatherIcon">🌤️</div>
-    <div class="temp" id="weatherTemp">Loading...</div>
-    <div>
-      <span id="weatherDesc">Updating weather...</span><br>
-      <a href="https://forecast.weather.gov/MapClick.php?lat=41.4048&lon=-81.7229"
-         target="_blank" rel="noopener">Parma, OH</a>
+    <div class="weather-row">
+        <div class="weather-icon" id="weatherIcon">⛅</div>
+
+        <div class="temp" id="weatherTemp">
+            Loading...
+        </div>
+
+        <div>
+            <span id="weatherDesc">Loading...</span><br>
+            <a href="https://www.wunderground.com/weather/us/oh/parma"
+               target="_blank">
+               Parma, OH
+            </a>
+        </div>
     </div>
-  </div>
 
-  <div class="mini-grid">
-    <div>Humidity<br><b id="humidity">--</b></div>
-    <div>Wind<br><b id="wind">--</b></div>
-    <div>Feels Like<br><b id="feelsLike">--</b></div>
-  </div>
+    <div class="mini-grid">
+        <div>Humidity<br><b id="humidity">--</b></div>
+        <div>Wind<br><b id="wind">--</b></div>
+        <div>Feels Like<br><b id="feelsLike">--</b></div>
+    </div>
 </div>
 
 <script>
-async function updateWeather() {
-  const lat = 41.4048;
-  const lon = -81.7229;
+const apiKey = "b86d60c9d9de4115ad60c9d9de511549";
 
-  try {
-    const pointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-    const pointsData = await pointsRes.json();
+async function updateWeather(){
 
-    const forecastRes = await fetch(pointsData.properties.forecastHourly);
-    const forecastData = await forecastRes.json();
+    const url =
+`https://api.weather.com/v3/wx/observations/current?geocode=41.4048,-81.7229&units=e&language=en-US&format=json&apiKey=${apiKey}`;
 
-    const current = forecastData.properties.periods[0];
+    try{
 
-    document.getElementById("weatherTemp").textContent = current.temperature + "°F";
-    document.getElementById("weatherDesc").textContent = current.shortForecast;
-    document.getElementById("wind").textContent = current.windSpeed;
-    document.getElementById("feelsLike").textContent = current.temperature + "°F";
+        const response = await fetch(url);
 
-    document.getElementById("humidity").textContent = "--";
+        const weather = await response.json();
 
-    const forecast = current.shortForecast.toLowerCase();
-    let icon = "🌤️";
+        document.getElementById("weatherTemp").innerHTML =
+            Math.round(weather.temperature) + "°F";
 
-    if (forecast.includes("rain")) icon = "🌧️";
-    else if (forecast.includes("storm")) icon = "⛈️";
-    else if (forecast.includes("snow")) icon = "❄️";
-    else if (forecast.includes("cloud")) icon = "☁️";
-    else if (forecast.includes("sun") || forecast.includes("clear")) icon = "☀️";
+        document.getElementById("weatherDesc").innerHTML =
+            weather.wxPhraseLong;
 
-    document.getElementById("weatherIcon").textContent = icon;
+        document.getElementById("humidity").innerHTML =
+            weather.relativeHumidity + "%";
 
-  } catch (error) {
-    document.getElementById("weatherTemp").textContent = "Unavailable";
-    document.getElementById("weatherDesc").textContent = "Weather could not load";
-  }
+        document.getElementById("wind").innerHTML =
+            weather.windSpeed + " mph";
+
+        document.getElementById("feelsLike").innerHTML =
+            Math.round(weather.temperatureFeelsLike) + "°F";
+
+        const iconCode = weather.iconCode;
+
+        const iconMap = {
+            0:"☀️",1:"☀️",2:"🌤️",3:"⛅",4:"☁️",
+            5:"🌫️",6:"🌫️",7:"🌧️",8:"🌦️",
+            9:"🌩️",10:"⛈️",11:"🌨️",12:"❄️"
+        };
+
+        document.getElementById("weatherIcon").innerHTML =
+            iconMap[iconCode] || "🌤️";
+
+    }
+    catch(e){
+        console.log(e);
+    }
 }
 
 updateWeather();
-setInterval(updateWeather, 30 * 60 * 1000);
+
+setInterval(updateWeather,300000);
+</script>
 </script>      <div class="widget"><h3>Repeater Status <span class="online">● Online</span></h3><div class="mini-grid"><div><b>462.575 MHz</b><br>Downlink</div><div><b>467.575 MHz</b><br>Uplink</div><div><b>79.7 Hz</b><br>PL Tone</div></div></div>
     </div>
   </div>
