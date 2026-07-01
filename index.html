@@ -20,7 +20,7 @@
     <a class="brand" href="index.html"><span class="brand-icon">📡</span><span>PARMA 575<small>GMRS RADIO GROUP</small></span></a>
     <button class="menu-btn" aria-label="Open menu">☰</button>
     <nav class="nav-links">
-      <a href="index.html">Home</a><a href="about.html">About</a><a href="repeater.html">Repeater</a><a href="events.html">Events</a><a href="gallery.html">Gallery</a><a href="downloads.html">Downloads</a><a href="join.html">Join</a><a href="contact.html">Contact</a>
+      <a href="index.html">Home</a><a href="about.html">About</a><a href="repeater.html">Repeater</a><a href="events.html">Events</a><a href="gallery.html">Gallery</a><a href="downloads.html">Downloads</a>
     </nav>
     <div class="nav-actions">
       <a class="btn btn-blue" href="https://discord.gg/JGJtjd6fC" target="_blank" rel="noopener">💬 Join Discord</a>
@@ -43,93 +43,121 @@
     </div>
     <div class="status-stack">
       <div class="widget">
-
-<h3>Current Time</h3><div class="time-grid"><div class="time-box"><h4>Local Time</h4><div id="localTime" class="clock"></div></div><div class="time-box"><h4>UTC (Zulu)</h4><div id="utcTime" class="clock"></div></div>
-
-</div>
-
-</div>
-<div class="widget">
-    <h3>Current Weather</h3>
-
-    <div class="weather-row">
-        <div class="weather-icon" id="weatherIcon">⛅</div>
-
-        <div class="temp" id="weatherTemp">
-            Loading...
+        <h3>Current Time</h3>
+        <div class="time-grid">
+          <div class="time-box">
+            <h4>Local Time</h4>
+            <div id="localTime" class="clock"></div>
+          </div>
+          <div class="time-box">
+            <h4>UTC (Zulu)</h4>
+            <div id="utcTime" class="clock"></div>
+          </div>
         </div>
+      </div>
 
-        <div>
+      <div class="widget">
+        <h3>Current Weather</h3>
+
+        <div class="weather-row">
+          <div class="weather-icon" id="weatherIcon">⛅</div>
+          <div class="temp" id="weatherTemp">Loading...</div>
+          <div>
             <span id="weatherDesc">Loading...</span><br>
-            <a href="https://www.wunderground.com/weather/us/oh/parma"
-               target="_blank">
-               Parma, OH
-            </a>
+            <a href="https://www.wunderground.com/weather/us/oh/parma" target="_blank">Parma, OH</a>
+          </div>
         </div>
-    </div>
 
-    <div class="mini-grid">
-    <div>Humidity<br><b id="humidity">--</b></div>
-    <div>Wind<br><b id="wind">--</b></div>
-    <div>Barometer<br><b id="barometer">--</b></div>
-    <div>Feels Like<br><b id="feelsLike">--</b></div>
-</div>
-</div>
+        <div class="mini-grid">
+          <div>Humidity<br><b id="humidity">--</b></div>
+          <div>Wind<br><b id="wind">--</b></div>
+          <div>Barometer<br><b id="barometer">--</b></div>
+          <div>Feels Like<br><b id="feelsLike">--</b></div>
+        </div>
+      </div>
 
-<script>
-const apiKey = "b86d60c9d9de4115ad60c9d9de511549";
+      <script>
+        async function updateWeather() {
+          try {
+            // Using Open-Meteo API (free, no API key required)
+            const url = 'https://api.open-meteo.com/v1/forecast?latitude=41.4048&longitude=-81.7229&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,pressure_msl&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/New_York';
 
-async function updateWeather(){
+            const response = await fetch(url);
+            const data = await response.json();
+            const current = data.current;
 
-    const url =
-`https://api.weather.com/v3/wx/observations/current?geocode=41.4048,-81.7229&units=e&language=en-US&format=json&apiKey=${apiKey}`;
+            // Update temperature
+            document.getElementById("weatherTemp").textContent = Math.round(current.temperature_2m) + "°F";
 
-    try{
+            // Update feels like
+            document.getElementById("feelsLike").textContent = Math.round(current.apparent_temperature) + "°F";
 
-        const response = await fetch(url);
+            // Update humidity
+            document.getElementById("humidity").textContent = current.relative_humidity_2m + "%";
 
-        const weather = await response.json();
+            // Update wind
+            document.getElementById("wind").textContent = Math.round(current.wind_speed_10m) + " mph";
 
-        document.getElementById("weatherTemp").innerHTML =
-            Math.round(weather.temperature) + "°F";
+            // Update barometer (convert Pa to inHg: divide by 3386.39)
+            const inHg = (current.pressure_msl / 3386.39).toFixed(2);
+            document.getElementById("barometer").textContent = inHg + " inHg";
 
-        document.getElementById("weatherDesc").innerHTML =
-            weather.wxPhraseLong;
+            // Weather code to description and icon mapping
+            const weatherCodes = {
+              0: { desc: "Clear Sky", icon: "☀️" },
+              1: { desc: "Mainly Clear", icon: "🌤️" },
+              2: { desc: "Partly Cloudy", icon: "⛅" },
+              3: { desc: "Overcast", icon: "☁️" },
+              45: { desc: "Foggy", icon: "🌫️" },
+              48: { desc: "Depositing Rime Fog", icon: "🌫️" },
+              51: { desc: "Light Drizzle", icon: "🌧️" },
+              53: { desc: "Moderate Drizzle", icon: "🌧️" },
+              55: { desc: "Dense Drizzle", icon: "🌧️" },
+              61: { desc: "Slight Rain", icon: "🌦️" },
+              63: { desc: "Moderate Rain", icon: "🌧️" },
+              65: { desc: "Heavy Rain", icon: "⛈️" },
+              71: { desc: "Slight Snow", icon: "🌨️" },
+              73: { desc: "Moderate Snow", icon: "❄️" },
+              75: { desc: "Heavy Snow", icon: "❄️" },
+              77: { desc: "Snow Grains", icon: "🌨️" },
+              80: { desc: "Slight Rain Showers", icon: "🌦️" },
+              81: { desc: "Moderate Rain Showers", icon: "🌧️" },
+              82: { desc: "Violent Rain Showers", icon: "⛈️" },
+              85: { desc: "Slight Snow Showers", icon: "🌨️" },
+              86: { desc: "Heavy Snow Showers", icon: "❄️" },
+              95: { desc: "Thunderstorm", icon: "⛈️" },
+              96: { desc: "Thunderstorm with Hail", icon: "⛈️" },
+              99: { desc: "Thunderstorm with Hail", icon: "⛈️" }
+            };
 
-        document.getElementById("humidity").innerHTML =
-            weather.relativeHumidity + "%";
+            const weatherInfo = weatherCodes[current.weather_code] || { desc: "Unknown", icon: "🌤️" };
+            document.getElementById("weatherDesc").textContent = weatherInfo.desc;
+            document.getElementById("weatherIcon").textContent = weatherInfo.icon;
 
-        document.getElementById("wind").innerHTML =
-            weather.windSpeed + " mph";
+          } catch (error) {
+            console.error("Weather update failed:", error);
+            document.getElementById("weatherTemp").textContent = "Unavailable";
+            document.getElementById("weatherDesc").textContent = "Unable to load weather";
+          }
+        }
 
-        document.getElementById("feelsLike").innerHTML =
-            Math.round(weather.temperatureFeelsLike) + "°F";
+        // Update weather on load and every 30 minutes
+        updateWeather();
+        setInterval(updateWeather, 30 * 60 * 1000);
+      </script>
 
-        const iconCode = weather.iconCode;
-
-        const iconMap = {
-            0:"☀️",1:"☀️",2:"🌤️",3:"⛅",4:"☁️",
-            5:"🌫️",6:"🌫️",7:"🌧️",8:"🌦️",
-            9:"🌩️",10:"⛈️",11:"🌨️",12:"❄️"
-        };
-
-        document.getElementById("weatherIcon").innerHTML =
-            iconMap[iconCode] || "🌤️";
-
-    }
-    catch(e){
-        console.log(e);
-    }
-}
-
-updateWeather();
-
-setInterval(updateWeather,300000);
-</script>
-</script>      <div class="widget"><h3>Repeater Status <span class="online">● Online</span></h3><div class="mini-grid"><div><b>462.575 MHz</b><br>Downlink</div><div><b>467.575 MHz</b><br>Uplink</div><div><b>79.7 Hz</b><br>PL Tone</div></div></div>
+      <div class="widget">
+        <h3>Repeater Status <span class="online">● Online</span></h3>
+        <div class="mini-grid">
+          <div><b>462.575 MHz</b><br>Downlink</div>
+          <div><b>467.575 MHz</b><br>Uplink</div>
+          <div><b>+5.0 MHz</b><br>Offset</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
 <section class="container feature-grid">
   <a class="feature" href="about.html"><div class="feature-icon">👥</div><div><h3>About PARMA 575</h3><p>Mission, members, and community involvement.</p>Learn More →</div></a>
   <a class="feature" href="repeater.html"><div class="feature-icon">📻</div><div><h3>Repeater Info</h3><p>Technical details and coverage information.</p>View Repeater →</div></a>
@@ -137,6 +165,7 @@ setInterval(updateWeather,300000);
   <a class="feature" href="gallery.html"><div class="feature-icon">📷</div><div><h3>Photo Gallery</h3><p>Club events, radios, and community service.</p>View Gallery →</div></a>
   <a class="feature" href="downloads.html"><div class="feature-icon">📄</div><div><h3>Downloads</h3><p>Programming guides, club documents, and maps.</p>View Downloads →</div></a>
 </section>
+
 <section class="section">
   <div class="container home-layout">
     <div class="card"><h3>Latest News</h3>
@@ -144,10 +173,10 @@ setInterval(updateWeather,300000);
       <div class="news-item"><div class="badge-icon">📢</div><div><b>Summer Picnic Announced</b><br><small>Join us July 26th for our annual club picnic.</small></div></div>
     </div>
     <div class="card"><h3>Upcoming Events</h3>
-      <div class="event-row"><img src="assets/images/bigfoot_picnic.svg" alt="Picnic"><div><h3>Summer Picnic</h3><p>Sunday, July 26, 2026 • 11:00 AM<br>James Day Park, 11828 West Pleasant Valley Road, Parma, OH 44130</p></div><a class="btn btn-green" href="events.html">Learn More</a></div>
+      <div class="event-row"><img src="assets/images/bigfoot_picnic.svg" alt="Picnic"><div><h3>Summer Picnic</h3><p>Sunday, July 26, 2026 • 11:00 AM<br>James Day Park, 11828 West Pleasant Valley Road</p></div></a>
     </div>
     <div class="card"><h3>Find Us</h3>
-      <iframe class="map-embed" src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d4979.1324318386!2d-81.71592199999999!3d41.363265999999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNDHCsDIxJzQ3LjgiTiA4McKwNDInNTcuMyJX!5e1!3m2!1sen!2sus!4v1782880754248!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <iframe class="map-embed" src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d4979.1324318386!2d-81.71592199999999!3d41.363265999999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNDHCsDIxJzQ2LjEiTiA4McKwNDMnMTAuOSJX!5e0!3m2!1sen!2sus!4v1687200000000" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <p style="text-align:center">Proudly serving Northern Ohio, Cuyahoga County, and surrounding areas.</p>
     </div>
   </div>
@@ -163,6 +192,7 @@ setInterval(updateWeather,300000);
   </div>
   <p style="max-width:1220px;margin:24px auto 0;color:#879bb0">© 2026 PARMA 575 GMRS Radio Group. All Rights Reserved.</p>
 </footer>
+
 <script src="assets/js/main.js"></script>
 
 </body>
