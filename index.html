@@ -49,8 +49,67 @@
 </div>
 
 </div>
-      <div class="widget"><h3>Current Weather</h3><div class="weather-row"><div class="weather-icon">🌤️</div><div class="temp">72°F</div><div>Partly Cloudy<br><a href="https://forecast.weather.gov/MapClick.php?lat=41.4048&lon=-81.7229" target="_blank" rel="noopener">Parma, OH</a></div></div><div class="mini-grid"><div>Humidity<br><b>58%</b></div><div>Wind<br><b>8 mph</b></div><div>Feels Like<br><b>72°F</b></div></div></div>
-      <div class="widget"><h3>Repeater Status <span class="online">● Online</span></h3><div class="mini-grid"><div><b>462.575 MHz</b><br>Downlink</div><div><b>467.575 MHz</b><br>Uplink</div><div><b>79.7 Hz</b><br>PL Tone</div></div></div>
+<div class="widget">
+  <h3>Current Weather</h3>
+
+  <div class="weather-row">
+    <div class="weather-icon" id="weatherIcon">🌤️</div>
+    <div class="temp" id="weatherTemp">Loading...</div>
+    <div>
+      <span id="weatherDesc">Updating weather...</span><br>
+      <a href="https://forecast.weather.gov/MapClick.php?lat=41.4048&lon=-81.7229"
+         target="_blank" rel="noopener">Parma, OH</a>
+    </div>
+  </div>
+
+  <div class="mini-grid">
+    <div>Humidity<br><b id="humidity">--</b></div>
+    <div>Wind<br><b id="wind">--</b></div>
+    <div>Feels Like<br><b id="feelsLike">--</b></div>
+  </div>
+</div>
+
+<script>
+async function updateWeather() {
+  const lat = 41.4048;
+  const lon = -81.7229;
+
+  try {
+    const pointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+    const pointsData = await pointsRes.json();
+
+    const forecastRes = await fetch(pointsData.properties.forecastHourly);
+    const forecastData = await forecastRes.json();
+
+    const current = forecastData.properties.periods[0];
+
+    document.getElementById("weatherTemp").textContent = current.temperature + "°F";
+    document.getElementById("weatherDesc").textContent = current.shortForecast;
+    document.getElementById("wind").textContent = current.windSpeed;
+    document.getElementById("feelsLike").textContent = current.temperature + "°F";
+
+    document.getElementById("humidity").textContent = "--";
+
+    const forecast = current.shortForecast.toLowerCase();
+    let icon = "🌤️";
+
+    if (forecast.includes("rain")) icon = "🌧️";
+    else if (forecast.includes("storm")) icon = "⛈️";
+    else if (forecast.includes("snow")) icon = "❄️";
+    else if (forecast.includes("cloud")) icon = "☁️";
+    else if (forecast.includes("sun") || forecast.includes("clear")) icon = "☀️";
+
+    document.getElementById("weatherIcon").textContent = icon;
+
+  } catch (error) {
+    document.getElementById("weatherTemp").textContent = "Unavailable";
+    document.getElementById("weatherDesc").textContent = "Weather could not load";
+  }
+}
+
+updateWeather();
+setInterval(updateWeather, 30 * 60 * 1000);
+</script>      <div class="widget"><h3>Repeater Status <span class="online">● Online</span></h3><div class="mini-grid"><div><b>462.575 MHz</b><br>Downlink</div><div><b>467.575 MHz</b><br>Uplink</div><div><b>79.7 Hz</b><br>PL Tone</div></div></div>
     </div>
   </div>
 </section>
