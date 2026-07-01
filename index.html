@@ -134,7 +134,10 @@ async function updateWeather() {
     setText("feelsLike", Math.round(current.apparent_temperature) + "°F");
     setText("humidity", Math.round(current.relative_humidity_2m) + "%");
     setText("wind", Math.round(current.wind_speed_10m) + " mph");
-    const baro = Number(current.pressure_msl ?? current.surface_pressure);
+    // Open-Meteo usually returns pressure in inHg when pressure_unit=inhg is used.
+    // If a browser/API ever returns hPa instead, convert it to inches of mercury.
+    let baro = Number(current.pressure_msl ?? current.surface_pressure);
+    if (Number.isFinite(baro) && baro > 100) baro = baro / 33.8638866667;
     setText("barometer", Number.isFinite(baro) ? baro.toFixed(2) + " inHg" : "--");
     const codes = {
       0:["Clear Sky","☀️"],1:["Mainly Clear","🌤️"],2:["Partly Cloudy","⛅"],3:["Overcast","☁️"],45:["Foggy","🌫️"],48:["Rime Fog","🌫️"],

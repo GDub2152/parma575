@@ -639,228 +639,214 @@
   <script>
     let solarChart = null;
 
+    function setSolarText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function getNumberFromObject(obj, possibleNames) {
+      if (!obj || typeof obj !== 'object') return NaN;
+      const lookup = {};
+      Object.keys(obj).forEach(k => lookup[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = obj[k]);
+      for (const name of possibleNames) {
+        const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const raw = lookup[key];
+        const n = Number(raw);
+        if (Number.isFinite(n)) return n;
+      }
+      return NaN;
+    }
+
+    function latestDataRow(data) {
+      if (!Array.isArray(data) || data.length === 0) return null;
+      // Old SWPC format is: first row = headings, following rows = values.
+      if (Array.isArray(data[0])) {
+        const headings = data[0].map(h => String(h).toLowerCase().replace(/[^a-z0-9]/g, ''));
+        const row = data[data.length - 1];
+        const obj = {};
+        headings.forEach((h, i) => obj[h] = row[i]);
+        return obj;
+      }
+      // New SWPC format is an array of objects.
+      return data[data.length - 1];
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(url + ' failed');
+      return await res.json();
+    }
+
+    async function getSolarFlux() {
+      const urls = [
+        'https://services.swpc.noaa.gov/products/summary/10cm-flux.json',
+        'https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json'
+      ];
+      for (const url of urls) {
+        try {
+          const data = await fetchJson(url);
+          if (!Array.isArray(data)) {
+            const n = getNumberFromObject(data, ['Observed Flux', 'ObservedFlux', 'observed_flux', 'Flux', 'F10.7', 'f107']);
+            if (Number.isFinite(n) && n > 0) return n;
+          }
+          const row = latestDataRow(data);
+          const n = getNumberFromObject(row, ['f10.7', 'f107', 'observed_flux', 'flux', 'smoothed_f10.7', 'f10_7']);
+          if (Number.isFinite(n) && n > 0) return n;
+        } catch (e) {
+          console.warn('Solar flux source failed:', url, e);
+        }
+      }
+      return NaN;
+    }
+
+    async function getKIndex() {
+      const urls = [
+        'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
+        'https://services.swpc.noaa.gov/products/noaa-estimated-planetary-k-index-1-minute.json'
+      ];
+      for (const url of urls) {
+        try {
+          const data = await fetchJson(url);
+          const row = latestDataRow(data);
+          if (Array.isArray(row)) {
+            const n = Number(row[row.length - 1]);
+            if (Number.isFinite(n)) return n;
+          }
+          const n = getNumberFromObject(row, ['kp_index', 'kp', 'k_index', 'k', 'estimated_kp', 'planetary_k_index']);
+          if (Number.isFinite(n)) return n;
+        } catch (e) {
+          console.warn('K-index source failed:', url, e);
+        }
+      }
+      return NaN;
+    }
+
+    function kpToAIndex(kp) {
+      // Approximate NOAA-style Kp to ap/A conversion table.
+      const rounded = Math.max(0, Math.min(9, Math.round(kp)));
+      const table = [0, 3, 7, 15, 27, 48, 80, 140, 240, 400];
+      return table[rounded];
+    }
+
     async function updateSolarData() {
       try {
-        const [solarWindRes, planetaryKRes] = await Promise.all([
-          fetch('https://services.swpc.noaa.gov/products/summary/10cm-flux.json', { cache: 'no-store' }),
-          fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json', { cache: 'no-store' })
-        ]);
-        const fluxData = await solarWindRes.json();
-        const kData = await planetaryKRes.json();
-        const sfi = Number(fluxData.Flux || fluxData.observed_flux || 0);
-        const latestK = Array.isArray(kData) ? kData[kData.length - 1] : null;
-        const kIndex = Number(latestK ? latestK[1] : 0);
-        const aIndex = Math.round(kIndex * 7);
+        const [sfi, kIndexRaw] = await Promise.all([getSolarFlux(), getKIndex()]);
+        const sfiValue = Number.isFinite(sfi) ? Math.round(sfi) : 0;
+        const kIndex = Number.isFinite(kIndexRaw) ? Math.round(kIndexRaw * 10) / 10 : 0;
+        const aIndex = kpToAIndex(kIndex);
 
-        // Update display
-        document.getElementById('sfi').textContent = Math.round(sfi);
-        document.getElementById('aIndex').textContent = aIndex;
-        document.getElementById('kIndex').textContent = kIndex;
-        document.getElementById('solarTime').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        setSolarText('sfi', sfiValue || 'N/A');
+        setSolarText('aIndex', aIndex);
+        setSolarText('kIndex', kIndex);
+        setSolarText('solarTime', new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }));
 
-        // Determine propagation conditions and gauge angles
         let propGMRS = 'Excellent', statusGMRS = 'excellent', angleGMRS = 45;
         let prop2m = 'Normal', status2m = 'normal', angle2m = 90;
         let prop70cm = 'Normal', status70cm = 'normal', angle70cm = 90;
 
-        // GMRS is mostly unaffected by solar activity (UHF)
         if (aIndex > 100 || kIndex > 7) {
-          propGMRS = 'Fair';
-          statusGMRS = 'fair';
-          angleGMRS = 225;
+          propGMRS = 'Fair'; statusGMRS = 'fair'; angleGMRS = 225;
         } else if (aIndex > 60) {
-          propGMRS = 'Good';
-          statusGMRS = 'good';
-          angleGMRS = 135;
+          propGMRS = 'Good'; statusGMRS = 'good'; angleGMRS = 135;
         }
 
-        // 2m and 70cm affected by solar/magnetic conditions
         if (aIndex > 60 || kIndex > 6) {
-          prop2m = 'Degraded';
-          prop70cm = 'Degraded';
-          status2m = 'degraded';
-          status70cm = 'degraded';
-          angle2m = 315;
-          angle70cm = 315;
-        } else if (sfi > 150 && aIndex < 15) {
-          prop2m = 'Excellent';
-          prop70cm = 'Excellent';
-          status2m = 'excellent';
-          status70cm = 'excellent';
-          angle2m = 45;
-          angle70cm = 45;
-        } else if (sfi > 100 && aIndex < 30) {
-          prop2m = 'Good';
-          prop70cm = 'Good';
-          status2m = 'good';
-          status70cm = 'good';
-          angle2m = 135;
-          angle70cm = 135;
-        } else if (sfi > 80 && aIndex < 45) {
-          prop2m = 'Fair';
-          prop70cm = 'Fair';
-          status2m = 'fair';
-          status70cm = 'fair';
-          angle2m = 225;
-          angle70cm = 225;
+          prop2m = 'Degraded'; prop70cm = 'Degraded'; status2m = 'degraded'; status70cm = 'degraded'; angle2m = 315; angle70cm = 315;
+        } else if (sfiValue > 150 && aIndex < 15) {
+          prop2m = 'Excellent'; prop70cm = 'Excellent'; status2m = 'excellent'; status70cm = 'excellent'; angle2m = 45; angle70cm = 45;
+        } else if (sfiValue > 100 && aIndex < 30) {
+          prop2m = 'Good'; prop70cm = 'Good'; status2m = 'good'; status70cm = 'good'; angle2m = 135; angle70cm = 135;
+        } else if (sfiValue > 80 && aIndex < 45) {
+          prop2m = 'Fair'; prop70cm = 'Fair'; status2m = 'fair'; status70cm = 'fair'; angle2m = 225; angle70cm = 225;
         }
 
-        // Add aurora alert if K-index is high
         if (kIndex >= 7) {
-          if (!prop2m.includes('Aurora')) prop2m += ' (Aurora)';
-          if (!prop70cm.includes('Aurora')) prop70cm += ' (Aurora)';
+          prop2m += ' (Aurora)';
+          prop70cm += ' (Aurora)';
         }
 
-        document.getElementById('propGMRS').textContent = propGMRS;
-        document.getElementById('prop2m').textContent = prop2m;
-        document.getElementById('prop70cm').textContent = prop70cm;
+        setSolarText('propGMRS', propGMRS);
+        setSolarText('prop2m', prop2m);
+        setSolarText('prop70cm', prop70cm);
 
-        // Update status badges
-        const statusGMRSEl = document.getElementById('statusGMRS');
-        const status2mEl = document.getElementById('status2m');
-        const status70cmEl = document.getElementById('status70cm');
+        const badges = [
+          ['statusGMRS', propGMRS, statusGMRS],
+          ['status2m', prop2m, status2m],
+          ['status70cm', prop70cm, status70cm]
+        ];
+        badges.forEach(([id, text, cls]) => {
+          const el = document.getElementById(id);
+          if (el) { el.textContent = text.split(' ')[0].toUpperCase(); el.className = 'status-badge ' + cls; }
+        });
 
-        statusGMRSEl.textContent = propGMRS.split(' ')[0].toUpperCase();
-        statusGMRSEl.className = 'status-badge ' + statusGMRS;
+        const gauges = [
+          ['gaugeGMRS', angleGMRS, 'gaugeValGMRS', propGMRS],
+          ['gauge2m', angle2m, 'gaugeVal2m', prop2m],
+          ['gauge70cm', angle70cm, 'gaugeVal70cm', prop70cm]
+        ];
+        gauges.forEach(([needleId, angle, valueId, text]) => {
+          const needle = document.getElementById(needleId);
+          if (needle) needle.style.transform = `rotate(${angle}deg)`;
+          setSolarText(valueId, text.split(' ')[0]);
+        });
 
-        status2mEl.textContent = prop2m.split(' ')[0].toUpperCase();
-        status2mEl.className = 'status-badge ' + status2m;
-
-        status70cmEl.textContent = prop70cm.split(' ')[0].toUpperCase();
-        status70cmEl.className = 'status-badge ' + status70cm;
-
-        // Update gauge needles
-        document.getElementById('gaugeGMRS').style.transform = `rotate(${angleGMRS}deg)`;
-        document.getElementById('gauge2m').style.transform = `rotate(${angle2m}deg)`;
-        document.getElementById('gauge70cm').style.transform = `rotate(${angle70cm}deg)`;
-
-        document.getElementById('gaugeValGMRS').textContent = propGMRS.split(' ')[0];
-        document.getElementById('gaugeVal2m').textContent = prop2m.split(' ')[0];
-        document.getElementById('gaugeVal70cm').textContent = prop70cm.split(' ')[0];
-
-        // Update solar index chart
-        updateSolarChart(sfi, aIndex, kIndex);
-
+        if (window.Chart && sfiValue) updateSolarChart(sfiValue, aIndex, kIndex);
       } catch (error) {
         console.error('Solar data update failed:', error);
-        document.getElementById('sfi').textContent = 'Unavailable';
-        document.getElementById('aIndex').textContent = 'Unavailable';
-        document.getElementById('kIndex').textContent = 'Unavailable';
+        setSolarText('sfi', 'N/A');
+        setSolarText('aIndex', 'N/A');
+        setSolarText('kIndex', 'N/A');
+        setSolarText('propGMRS', 'Normal');
+        setSolarText('prop2m', 'Normal');
+        setSolarText('prop70cm', 'Normal');
+        setSolarText('statusGMRS', 'NORMAL');
+        setSolarText('status2m', 'NORMAL');
+        setSolarText('status70cm', 'NORMAL');
+        setSolarText('gaugeValGMRS', 'Normal');
+        setSolarText('gaugeVal2m', 'Normal');
+        setSolarText('gaugeVal70cm', 'Normal');
       }
     }
 
     function updateSolarChart(sfi, aIndex, kIndex) {
       const ctx = document.getElementById('solarChart');
-      if (!ctx) return;
-
+      if (!ctx || !window.Chart) return;
+      const label = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
       if (solarChart) {
-        solarChart.data.labels.push(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }));
-        if (solarChart.data.labels.length > 12) {
-          solarChart.data.labels.shift();
-        }
-
+        solarChart.data.labels.push(label);
+        if (solarChart.data.labels.length > 12) solarChart.data.labels.shift();
         solarChart.data.datasets[0].data.push(Math.round(sfi));
         solarChart.data.datasets[1].data.push(aIndex);
-
         if (solarChart.data.datasets[0].data.length > 12) {
           solarChart.data.datasets[0].data.shift();
           solarChart.data.datasets[1].data.shift();
         }
-
         solarChart.update('none');
-      } else {
-        solarChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: [new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })],
-            datasets: [
-              {
-                label: 'Solar Flux (SFI)',
-                data: [Math.round(sfi)],
-                borderColor: '#28a9ff',
-                backgroundColor: 'rgba(40, 169, 255, 0.1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true,
-                yAxisID: 'y'
-              },
-              {
-                label: 'A-Index',
-                data: [aIndex],
-                borderColor: '#1fb34d',
-                backgroundColor: 'rgba(31, 179, 77, 0.1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true,
-                yAxisID: 'y1'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-              mode: 'index',
-              intersect: false
-            },
-            plugins: {
-              legend: {
-                labels: {
-                  color: '#b7c9dc',
-                  font: { size: 12 }
-                }
-              }
-            },
-            scales: {
-              y: {
-                type: 'linear',
-                display: true,
-                position: 'left',
-                title: {
-                  display: true,
-                  text: 'Solar Flux',
-                  color: '#63c5ff'
-                },
-                ticks: {
-                  color: '#b7c9dc'
-                },
-                grid: {
-                  color: 'rgba(40, 169, 255, 0.1)'
-                }
-              },
-              y1: {
-                type: 'linear',
-                display: true,
-                position: 'right',
-                title: {
-                  display: true,
-                  text: 'A-Index',
-                  color: '#63c5ff'
-                },
-                ticks: {
-                  color: '#b7c9dc'
-                },
-                grid: {
-                  drawOnChartArea: false
-                }
-              },
-              x: {
-                ticks: {
-                  color: '#b7c9dc'
-                },
-                grid: {
-                  color: 'rgba(40, 169, 255, 0.1)'
-                }
-              }
-            }
-          }
-        });
+        return;
       }
+      solarChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [label],
+          datasets: [
+            { label: 'Solar Flux (SFI)', data: [Math.round(sfi)], borderColor: '#28a9ff', backgroundColor: 'rgba(40, 169, 255, 0.1)', borderWidth: 2, tension: 0.4, fill: true, yAxisID: 'y' },
+            { label: 'A-Index', data: [aIndex], borderColor: '#1fb34d', backgroundColor: 'rgba(31, 179, 77, 0.1)', borderWidth: 2, tension: 0.4, fill: true, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#b7c9dc', font: { size: 12 } } } },
+          scales: {
+            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Solar Flux', color: '#63c5ff' }, ticks: { color: '#b7c9dc' }, grid: { color: 'rgba(40, 169, 255, 0.1)' } },
+            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'A-Index', color: '#63c5ff' }, ticks: { color: '#b7c9dc' }, grid: { drawOnChartArea: false } },
+            x: { ticks: { color: '#b7c9dc' }, grid: { color: 'rgba(40, 169, 255, 0.1)' } }
+          }
+        }
+      });
     }
 
-    // Update on page load
     updateSolarData();
-    // Update every 5 minutes
     setInterval(updateSolarData, 5 * 60 * 1000);
   </script>
 
